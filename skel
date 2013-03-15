@@ -34,8 +34,8 @@ function process-template-variables {
 
         echo "--> Processing file $FILE..."
 
-        perl -p -i -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg' $template
-        mv $template $FILE
+        shellate $template > $FILE
+        rm $template
     done
 }
 
