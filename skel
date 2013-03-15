@@ -1,0 +1,78 @@
+#!/bin/bash
+
+## Displays the help message
+## :: () -> ()
+function help {
+    cat <<EOF
+skel --- Generates an skeleton for a project.
+
+Usage:
+ 
+  skel <kind>           Generates a new project of the given kind.
+  skel help             Displays this screen.
+
+
+Available kinds:
+
+EOF
+    for kind in `ls -1 ~/.skel`; do
+        echo "  $kind			$(< ~/.skel/$kind/DESCRIPTION)"
+    done
+}
+
+
+## Processes template variables
+## :: String -> ()
+function process-template-variables {
+    echo
+    echo "Processing template variables in <$1>..."
+    
+    for template in `find . -name "*._"`; do
+        NAME=$(basename "$template" ._)
+        DIR=$(dirname "$template")
+        FILE=$DIR/$NAME
+
+        echo "--> Processing file $FILE..."
+
+        perl -p -i -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg' $template
+        mv $template $FILE
+    done
+}
+
+
+## Generates an skeleton from a template
+## :: String -> ()
+function generate {
+    if [ ! -d ~/.skel/$1 ]; then
+        echo "Unknown skeleton <$1>."
+        exit 1
+    fi
+
+    echo
+    echo "Generating project from skeleton <$1>..."
+
+    echo "Copying files to `pwd`..."
+    cp -r ~/.skel/$1/template/* .
+
+    if [ -x ~/.skel/$1/skeleton ]; then
+        echo "Setting up post-processing for skeleton <$1>..."
+        . ~/.skel/$1/skeleton setup
+    fi
+
+    process-template-variables $1
+
+    if [ -x ~/.skel/$1/skeleton ]; then
+        echo "Executing post-processing for skeleton <$1>..."
+        ~/.skel/$1/skeleton post-process
+    fi
+
+    echo "Done generating the project."    
+}
+
+
+### -- Main ------------------------------------------------------------
+case $1 in
+    help ) help;;
+    ""   ) help;;
+    *    ) generate $1;;
+esac
