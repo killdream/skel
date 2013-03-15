@@ -41,7 +41,10 @@ arguments:
 
 ## Requirements
 
-Currently it requires PERL for the templating.
+[Shellate](http://github.com/killdream/shellate) is required for templating. If
+you got Node.js and NPM installed, just grab it from NPM and you're good to go.
+
+    $ npm install -g shellate
 
 
 ## Installation
